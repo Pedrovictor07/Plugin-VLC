@@ -1,0 +1,31 @@
+#include <stdio.h>
+#include <string.h>
+
+struct Musica {			
+	char titulo[100];		
+	char genero[100];
+};
+
+int main (){
+	FILE *arq = NULL;
+	FILE *doc = NULL;
+	struct Musica playlist[1000];
+	struct Musica teste[40];
+	int i;
+	arq = fopen ("playlist.bin", "wb");
+	doc = fopen ("playlist.txt", "r");
+	if (doc == NULL){
+		printf ("Erro Vazio");
+		return 1;
+	}
+	for (i = 0; fgets(playlist[i].titulo, sizeof(playlist[i].titulo), doc)!=NULL; i++){
+		fgets(playlist[i].genero, sizeof(playlist[i].genero), doc);
+	}
+	fwrite (playlist, sizeof(struct Musica), 40, arq);
+	/*fread (teste, sizeof(struct Musica), 40, arq);
+	for (i = 0; i < 40; i++){
+		printf ("% d:%s %s",(i +1), teste[i].titulo, teste[i].genero);
+	}*/
+	fclose (arq);
+	return 0;
+}
