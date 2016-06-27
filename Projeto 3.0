@@ -1,0 +1,202 @@
+#include <string.h>
+#include <stdio.h>
+
+struct Musica {			
+	char titulo[100];		
+	char genero[100];
+};
+
+struct MaisIndicacoes {		//Estrutura que vai pegar os dois generos mais escutados
+	float porcentagem;
+	char generoM[100];
+};
+
+struct Ranking {			//calcula a musica mais ouvida
+	char nome[100];
+	int vezes;
+};
+
+void contagem (int total, int *quant, const struct Musica *lista);
+
+void porcentagem (int total, const int *quant, float *resultado);		//calcula porcentagem dos generos
+
+void ordenar (float *resultado, struct MaisIndicacoes *resposta);		//ordena a ordem dos generos
+
+void top3 (const struct Musica *lista, const struct MaisIndicacoes *resposta, int total, struct Ranking *musicas);
+
+void sugestoes (const struct Ranking *musica, const struct Musica *lista, char indicacao[100][100], const struct MaisIndicacoes *resposta);
+
+int main (){
+	FILE *doc = NULL;
+	doc = fopen("arquivo.txt", "r");				//busca a lista de musicas
+	struct Musica lista[100];
+	struct MaisIndicacoes resposta[100];
+	float resultado[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int quant[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+	char indicacao[100][100];
+	int cont, i;
+	struct Ranking musica[100];
+	if (doc == NULL){							//Testa se o arquivo existe
+		printf ("Erro!");
+		return 1;
+	}
+	for (cont = 0; fgets(lista[cont].titulo, sizeof(lista[cont].titulo), doc)!=NULL; ++cont){		
+		fscanf(doc, "%s\n", &lista[cont].genero);																								
+	}
+	contagem (cont, quant, lista);
+	porcentagem (cont, quant, resultado);
+	ordenar (resultado, resposta);
+	top3 (lista, resposta, cont, musica);
+	sugestoes (musica, lista, indicacao, resposta);
+	for (i = 0; i < 40; i++){
+		printf ("%d: %s\n", (i + 1), *indicacao[i]);
+	}
+	return 0;
+}
+
+void contagem (int total, int *quant, const struct Musica *lista){			//Realiza a contagem de músicas por gêneros
+	int i,j;
+	static char *listaG[9] = {"MPB", "CLASSIC", "POP", "ROCK", "COUNTRY", "BREGA", "FORRO", "FUNK", "DANCE"};
+	for (i = 0; i < total; ++i){
+		for (j = 0; j < 9; ++j){
+			if (strcmp(lista[i].genero, listaG[j]) == 0){
+				quant[j]++;
+				break;
+			}
+		}
+	}
+}
+
+void porcentagem (int total, const int *quant, float *resultado){
+	int i;
+	for (i = 0; i < 9; ++i){
+		resultado[i] = (quant[i] * 100) / total;
+	}
+}
+
+void ordenar (float *resultado, struct MaisIndicacoes *resposta){
+	int i, j, temp;
+	for (i = 0; i < 9; i++){									// a partir daqui ele pega a porcentagem calculada e analisa qual é o gênero mais ouvido.
+		if (resultado[i] > resposta[0].porcentagem){
+			resposta[0].porcentagem = resultado[i];
+			if (i == 0){    
+				strcpy (resposta[0].generoM, "MPB");
+			}
+			else if (i == 1){
+				strcpy (resposta[0].generoM, "CLASSIC");
+			}
+			else if (i == 2){
+				strcpy (resposta[0].generoM, "POP");
+			}
+			else if (i == 3){
+				strcpy (resposta[0].generoM, "ROCK");
+			}
+			else if (i == 4){
+				strcpy (resposta[0].generoM, "COUNTRY");
+			}
+			else if (i == 5){
+				strcpy (resposta[0].generoM, "BREGA");
+			}
+			else if (i == 6){
+				strcpy (resposta[0].generoM, "FORRO");
+			}
+			else if (i == 7){
+				strcpy (resposta[0].generoM, "FUNK");
+			}
+			else if (i == 8){
+				strcpy (resposta[0].generoM, "DANCE");
+			}
+			temp = i;
+		}
+	}
+	for (i = 0; i < 9; i++){
+		for (j = 1; j < 9; j++){
+			if ((resultado[i] <= resposta[j - 1].porcentagem)&&(resultado[i] > resposta[j].porcentagem)&&(i != temp)){     // ordem mais ouvidas
+				resposta[j].porcentagem = resultado[i];
+				if (i == 0){    
+					strcpy (resposta[j].generoM, "MPB");
+				}
+				else if (i == 1){
+					strcpy (resposta[j].generoM, "CLASSIC");
+				}
+				else if (i == 2){
+					strcpy (resposta[j].generoM, "POP");
+				}
+				else if (i == 3){
+					strcpy (resposta[j].generoM, "ROCK");
+				}
+				else if (i == 4){
+					strcpy (resposta[j].generoM, "COUNTRY");
+				}
+				else if (i == 5){
+					strcpy (resposta[j].generoM, "BREGA");
+				}
+				else if (i == 6){
+					strcpy (resposta[j].generoM, "FORRO");
+				}
+				else if (i == 7){
+					strcpy (resposta[j].generoM, "FUNK");
+				}
+				else if (i == 8){
+					strcpy (resposta[j].generoM, "DANCE");
+				}
+				break;
+			}
+		}
+	}
+}
+
+void top3 (const struct Musica *lista, const struct MaisIndicacoes *resposta, int total, struct Ranking *musicas){
+	int i, j, num = 0;
+	for (i = 0; i < total; i++){
+		if (strcmp(resposta[0].generoM, lista[i].genero) == 0){
+			strcpy (musicas[num].nome, lista[i].titulo);
+			num++;
+		}
+	}
+	for (i = 0; i < num; i++){
+		if (strcmp (musicas[i].nome, "Fora") == 0){
+			continue;
+		}
+		musicas[i].vezes = 1;
+		for (j = i + 1; j < num; j++){
+			if (strcmp (musicas[i].nome, musicas[j].nome) == 0) {
+				musicas[i].vezes++;
+				strcpy (musicas[j].nome, "Fora");
+			}
+		}
+	}
+	for (i = 0; i < num; i++){
+		for (j = i + 1; j < num; j++){
+			if (musicas[i].vezes < musicas[j].vezes){
+				int temp = musicas[i].vezes;
+				char tempC[100];
+				strcpy (tempC, musicas[i].nome);
+				musicas[i].vezes = musicas[j].vezes;
+				strcpy (musicas[i].nome, musicas[j].nome);
+				musicas[j].vezes = temp;
+				strcpy (musicas[j].nome, tempC);
+			}
+		}
+	}
+}
+
+void sugestoes (const struct Ranking *musica, const struct Musica *lista, char indicacao[100][100], const struct MaisIndicacoes *resposta){
+	FILE *recomendacoes = NULL;
+	int i = 0;
+	char estepe[100];
+	recomendacoes = fopen("playlist.bin", "rb");
+	fseek (recomendacoes, 100, SEEK_SET);
+	while (!feof(recomendacoes)){
+		fread (estepe, 100, 1, recomendacoes);
+		printf ("%d: %s", (i++), estepe);
+		if (strcmp(estepe, resposta[0].generoM) == 0){
+			fseek (recomendacoes, -200, SEEK_CUR);
+			fread (&indicacao[i++], 100, 1, recomendacoes);
+			fseek (recomendacoes, 200, SEEK_CUR);
+		}
+		else { 
+			fseek (recomendacoes, 200, SEEK_CUR);
+		}
+	}
+}
